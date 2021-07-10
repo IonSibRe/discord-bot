@@ -1,11 +1,29 @@
 import discord
-import random
+import requests
 from dotenv import dotenv_values
 
-envVars = dotenv_values(".env")
-apiToken = envVars["TOKEN"]
+ENV_VARS = dotenv_values(".env")
+DISCORD_TOKEN = ENV_VARS["TOKEN"]
+API_URL = "https://yomomma-api.herokuapp.com"
+
+helpMessage = """
+!tvoje-mama - 1 mama joke
+"""
 
 client = discord.Client()
+
+def getJoke():
+    response = requests.get(f"{API_URL}/jokes")
+
+    while True:
+        joke = response.json()["joke"]
+
+        if "poor" in joke.split() or "skinny" in joke.split():
+            continue
+        else:
+            break
+
+    return joke
 
 @client.event
 async def on_ready():
@@ -13,28 +31,39 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    # Log
     username = str(message.author).split("#")[0]
     user_message = str(message.content)
     channel = str(message.channel.name)
     print(f"{username}: {user_message} ({channel})")
 
+    # Return for messages send by the bot
     if (message.author == client.user):
         return
 
     if message.channel.name == 'bot':
-        if user_message.lower() == "hello":
-            await message.channel.send(f"Hello {username}")
+        # Help
+        if user_message.lower() == "!help":
+            await message.channel.send(helpMessage)
             return
-        elif user_message.lower() == "bye":
-            await message.channel.send(f"Goodbye {username}")
-            return
-        elif user_message.lower() == "!random":
-            response = f"This is your random number: {random.randrange(1000000)}"
-            await message.channel.send(response)
-            return
-    
-    if user_message.lower() == "!anywhere":
-        await message.channel.send("This can be send anywhere")
-        return
 
-client.run(apiToken)
+        # Joke  
+        if user_message.lower() == "!tvoje-mama":
+            joke = getJoke()
+            await message.channel.send(joke)
+            return
+
+        # Fiola
+        if username == "HopperW12" and user_message:
+            joke = getJoke()
+            await message.channel.send(f"Tvoje máma Fiolo :)\n{joke}")
+            return
+
+        # Zugabuk
+        if username == "ZugabukCZ":
+            joke = getJoke()
+            await message.channel.send(f"Tvoje máma Zugabuku :)\n{joke}")
+            return
+            
+
+client.run(DISCORD_TOKEN)
