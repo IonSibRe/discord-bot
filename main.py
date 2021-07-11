@@ -1,7 +1,9 @@
 import discord
+from discord.ext import commands
 import requests
 from dotenv import dotenv_values
 
+# Variables
 ENV_VARS = dotenv_values(".env")
 DISCORD_TOKEN = ENV_VARS["TOKEN"]
 API_URL = "https://yomomma-api.herokuapp.com"
@@ -10,8 +12,10 @@ helpMessage = """
 !tvoje-mama - 1 mama joke
 """
 
-client = discord.Client()
+# Config
+client = commands.Bot(command_prefix="!")
 
+# Functions
 def getJoke():
     response = requests.get(f"{API_URL}/jokes")
 
@@ -25,45 +29,25 @@ def getJoke():
 
     return joke
 
+# Events
 @client.event
 async def on_ready():
-    print("Logged in as {0.user}".format(client))
+    print("Logged in as {0}".format(str(client.user).split("#")[0]))
+    print("Started!")
 
-@client.event
-async def on_message(message):
-    # Log
-    username = str(message.author).split("#")[0]
-    user_message = str(message.content)
-    channel = str(message.channel.name)
-    print(f"{username}: {user_message} ({channel})")
+# Commands
+@client.command()
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx, amount=5):
+    await ctx.channel.purge(limit=amount + 1)
 
-    # Return for messages send by the bot
-    if (message.author == client.user):
-        return
+@client.command(aliases=["tvoje-mama"])
+async def tvoje_mama(ctx):
+    joke = getJoke()
+    await ctx.send(joke)
 
-    if message.channel.name == 'bot':
-        # Help
-        if user_message.lower() == "!help":
-            await message.channel.send(helpMessage)
-            return
-
-        # Joke  
-        if user_message.lower() == "!tvoje-mama":
-            joke = getJoke()
-            await message.channel.send(joke)
-            return
-
-        # Fiola
-        if username == "HopperW12" and user_message:
-            joke = getJoke()
-            await message.channel.send(f"Tvoje máma Fiolo :)\n{joke}")
-            return
-
-        # Zugabuk
-        if username == "ZugabukCZ":
-            joke = getJoke()
-            await message.channel.send(f"Tvoje máma Zugabuku :)\n{joke}")
-            return
-            
+@client.command(aliases=["help"])
+async def helpMsg(ctx):
+    await ctx.send(helpMessage)
 
 client.run(DISCORD_TOKEN)
