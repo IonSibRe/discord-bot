@@ -8,10 +8,6 @@ ENV_VARS = dotenv_values(".env")
 DISCORD_TOKEN = ENV_VARS["TOKEN"]
 API_URL = "https://yomomma-api.herokuapp.com"
 
-helpMessage = """
-!tvoje-mama - 1 mama joke
-"""
-
 # Config
 client = commands.Bot(command_prefix="!")
 
@@ -32,7 +28,6 @@ def getJoke():
 # Events
 @client.event
 async def on_ready():
-    print("Logged in as {0}".format(str(client.user).split("#")[0]))
     print("Started!")
 
 # Commands
@@ -45,9 +40,5 @@ async def clear(ctx, amount=5):
 async def tvoje_mama(ctx):
     joke = getJoke()
     await ctx.send(joke)
-
-@client.command(aliases=["help"])
-async def helpMsg(ctx):
-    await ctx.send(helpMessage)
 
 client.run(DISCORD_TOKEN)
